@@ -29,6 +29,7 @@
         input = document.getElementById('message');
 
     messenger.listen(function (msg) {
+        msg = typeof msg === 'object' ? JSON.stringify(msg) : msg;
         var newline = '\n';
         var text = document.createTextNode(msg + newline);
         document.getElementById('output').appendChild(text);

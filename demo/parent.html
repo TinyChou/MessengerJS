@@ -33,6 +33,7 @@
         <button type="button" class="btn btn-primary" onclick="sendMessage('iframe2');">send to iframe2</button>
         <button type="button" class="btn btn-success" onclick="sendAll();">send to all</button>
         <button type="button" id="child" class="btn btn-info" onclick="openWindow();">open a window</button>
+        <button type="button" class="btn btn-success" onclick="sendAllWithObject();">send to all with object</button>
     </p>
     <pre id="output" class="alert alert-warning"></pre>
 </div>
@@ -43,6 +44,7 @@
         input = document.getElementById('message');
 
     messenger.listen(function (msg) {
+        msg = typeof msg === 'object' ? JSON.stringify(msg) : msg;
         var newline = '\n';
         var text = document.createTextNode(msg + newline);
         document.getElementById('output').appendChild(text);
@@ -61,6 +63,16 @@
         var msg = input.value;
         messenger.send("message from parent: " + msg);
         input.value = '';
+    }
+
+    function sendAllWithObject() {
+      var msg = {
+        hello: 'world!',
+        from: 'parent',
+        to: 'u',
+      };
+      messenger.send(msg);
+      input.value = '';
     }
 
     function openWindow() {

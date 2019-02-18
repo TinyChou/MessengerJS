@@ -38,18 +38,29 @@ window.Messenger = (function(){
         this.prefix = prefix;
     }
 
+    // 添加工具方法, 使其支持plain object message
+    // @author tinychou
+    Target.prototype.wrapMessage = function(msg) {
+
+      return {
+        prefix: this.prefix,
+        name: this.name,
+        raw: msg,
+      };
+    };
+
     // 往 target 发送消息, 出于安全考虑, 发送消息会带上前缀
     if ( supportPostMessage ){
         // IE8+ 以及现代浏览器支持
         Target.prototype.send = function(msg){
-            this.target.postMessage(this.prefix + '|' + this.name + '__Messenger__' + msg, '*');
+            this.target.postMessage(this.wrapMessage(msg), '*');
         };
     } else {
         // 兼容IE 6/7
         Target.prototype.send = function(msg){
             var targetFunc = window.navigator[this.prefix + this.name];
             if ( typeof targetFunc == 'function' ) {
-                targetFunc(this.prefix + '|' + this.name + '__Messenger__' + msg, window);
+                targetFunc(this.wrapMessage(msg), window);
             } else {
                 throw new Error("target callback function is not defined");
             }
@@ -77,19 +88,15 @@ window.Messenger = (function(){
     Messenger.prototype.initListen = function(){
         var self = this;
         var generalCallback = function(msg){
+            // if using postMessage
             if(typeof msg == 'object' && msg.data){
                 msg = msg.data;
             }
 
-            var msgPairs = msg.split('__Messenger__');
-            var msg = msgPairs[1];
-            var pairs = msgPairs[0].split('|');
-            var prefix = pairs[0];
-            var name = pairs[1];
-
             for(var i = 0; i < self.listenFunc.length; i++){
-                if (prefix + name === self.prefix + self.name) {
-                    self.listenFunc[i](msg);
+                if (msg.prefix === self.prefix &&
+                  msg.name === self.name) {
+                  self.listenFunc[i](msg.raw);
                 }
             }
         };
